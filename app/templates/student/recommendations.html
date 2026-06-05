@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Job Recommendations{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Recommended Jobs</h1>
+    <p class="text-muted">Personalized job suggestions based on your profile, skills, and preferences</p>
+</div>
+
+<div class="content-body">
+    {% if recommendations %}
+    <div class="stats-grid grid-2">
+        {% for item in recommendations %}
+        <div class="job-card">
+            <div class="job-card-header">
+                <div>
+                    <h3>{{ item.job.title }}</h3>
+                    <p class="text-muted">{{ item.company.company_name if item.company else 'N/A' }}</p>
+                </div>
+                <div style="text-align: right;">
+                    <span class="badge badge-success" style="font-size: 1em;">{{ item.score }}% Match</span>
+                    {% if item.already_applied %}
+                    <br><span class="badge badge-applied mt-1">Applied</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="job-card-body">
+                {# Match Progress Bar #}
+                <div class="progress-bar mb-1">
+                    <div class="progress-fill" style="width: {{ item.score }}%; background: {% if item.score >= 80 %}#27ae60{% elif item.score >= 60 %}#f39c12{% else %}#e74c3c{% endif %};"></div>
+                </div>
+
+                <div class="job-meta">
+                    {% if item.job.salary_lpa %}
+                    <span>💰 {{ item.job.salary_lpa }} LPA</span>
+                    {% endif %}
+                    {% if item.job.location %}
+                    <span>📍 {{ item.job.location }}</span>
+                    {% endif %}
+                    {% if item.job.job_type %}
+                    <span>💼 {{ item.job.job_type }}</span>
+                    {% endif %}
+                    {% if item.job.min_cgpa %}
+                    <span>📊 Min CGPA: {{ item.job.min_cgpa }}</span>
+                    {% endif %}
+                </div>
+
+                {% if item.job.deadline %}
+                <p class="mt-1 text-muted">
+                    📅 Deadline: {{ item.job.deadline.strftime('%b %d, %Y') }}
+                </p>
+                {% endif %}
+
+                {% if item.job.description %}
+                <p class="mt-1">{{ item.job.description | truncate(150) }}</p>
+                {% endif %}
+
+                {% if item.job.required_skills_list %}
+                <div class="mt-1">
+                    {% for skill in item.job.required_skills_list %}
+                    <span class="job-tag">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="job-card-footer">
+                {% if item.already_applied %}
+                    <span class="btn btn-outline btn-sm" style="cursor:default;opacity:0.6;">Already Applied</span>
+                {% else %}
+                    <form method="POST" action="{{ url_for('student.apply', job_id=item.job.id) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success btn-sm">Apply Now</button>
+                    </form>
+                {% endif %}
+                <a href="{{ url_for('student.jobs') }}" class="btn btn-outline btn-sm">View All Jobs</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">🤖</div>
+        <p class="empty-state-text">No recommendations available yet. Make sure your profile has skills and branch information to get personalized suggestions.</p>
+        <a href="{{ url_for('student.profile') }}" class="btn btn-primary">Update Profile</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

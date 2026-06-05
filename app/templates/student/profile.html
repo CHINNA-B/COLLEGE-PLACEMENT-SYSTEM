@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>My Profile</h1>
+    <p class="text-muted">Update your personal and academic information</p>
+</div>
+
+<div class="content-body">
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('student.profile') }}">
+        {{ form.hidden_tag() }}
+
+        {# Personal Information Card #}
+        <div class="card mb-2">
+            <div class="card-header">
+                <h2>Personal Information</h2>
+            </div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
+                        {{ form.name(class="form-control", id="name", placeholder="Enter your full name") }}
+                        {% for error in form.name.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Phone Number</label>
+                        {{ form.phone(class="form-control", id="phone", placeholder="e.g. +91 9876543210") }}
+                        {% for error in form.phone.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="address">Address</label>
+                    {{ form.address(class="form-control", id="address", rows="3", placeholder="Enter your address") }}
+                    {% for error in form.address.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# Academic Information Card #}
+        <div class="card mb-2">
+            <div class="card-header">
+                <h2>Academic Information</h2>
+            </div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="branch">Branch <span class="text-danger">*</span></label>
+                        {{ form.branch(class="form-select", id="branch") }}
+                        {% for error in form.branch.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="cgpa">CGPA <span class="text-danger">*</span></label>
+                        {{ form.cgpa(class="form-control", id="cgpa", placeholder="e.g. 8.5", step="0.01", min="0", max="10") }}
+                        {% for error in form.cgpa.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                        <span class="form-text">Enter your CGPA on a scale of 0-10</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="skills">Skills</label>
+                    {{ form.skills(class="form-control", id="skills", rows="3") }}
+                    {% for error in form.skills.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                    <span class="form-text">Enter your skills separated by commas (e.g. Python, Java, SQL, Machine Learning)</span>
+                </div>
+            </div>
+        </div>
+
+        {# Resume Upload Card #}
+        <div class="card mb-2">
+            <div class="card-header">
+                <h2>Resume</h2>
+            </div>
+            <div class="card-body">
+                {% if student.resume_filename %}
+                <div class="alert alert-info mb-2">
+                    <strong>📄 Current Resume:</strong> {{ student.resume_original_name or student.resume_filename }}
+                    <a href="{{ url_for('student.resume', filename=student.resume_filename) }}" class="btn btn-sm btn-outline" target="_blank" style="margin-left: 10px;">View Resume</a>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label class="form-label" for="resume">
+                        {% if student.resume_filename %}
+                            Upload New Resume (replaces current)
+                        {% else %}
+                            Upload Resume
+                        {% endif %}
+                    </label>
+                    {{ form.resume(class="form-control", id="resume", accept=".pdf,.doc,.docx") }}
+                    {% for error in form.resume.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                    <span class="form-text">Accepted formats: PDF, DOC, DOCX (Max 5MB)</span>
+                </div>
+            </div>
+        </div>
+
+        {# Submit Button #}
+        <div class="flex flex-end gap-1">
+            <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary btn-lg">Save Profile</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

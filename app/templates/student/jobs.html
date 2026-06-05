@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Jobs{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Browse Jobs</h1>
+    <p class="text-muted">Explore open positions and apply to matching opportunities</p>
+</div>
+
+<div class="content-body">
+
+    {# Search and Filters #}
+    <div class="card mb-2">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('student.jobs') }}">
+                <div class="search-bar mb-1">
+                    <input type="text" name="search" class="form-control" placeholder="Search by job title, company, or skills..." value="{{ search }}">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+                <div class="filter-group grid-3">
+                    <div class="form-group">
+                        <label class="form-label">Branch</label>
+                        <select name="branch" class="form-select">
+                            <option value="">All Branches</option>
+                            {% for b in ['Computer Science', 'Electronics', 'Mechanical', 'Civil', 'Electrical', 'Information Technology', 'Chemical', 'Other'] %}
+                            <option value="{{ b }}" {{ 'selected' if branch_filter == b }}>{{ b }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Min Salary (LPA)</label>
+                        <input type="number" name="min_salary" class="form-control" placeholder="e.g. 5" value="{{ min_salary }}" step="0.5" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Job Type</label>
+                        <select name="job_type" class="form-select">
+                            <option value="">All Types</option>
+                            {% for jt in ['Full-time', 'Internship', 'Part-time', 'Contract'] %}
+                            <option value="{{ jt }}" {{ 'selected' if job_type == jt }}>{{ jt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-end gap-1 mt-1">
+                    <a href="{{ url_for('student.jobs') }}" class="btn btn-outline btn-sm">Clear Filters</a>
+                    <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Job Listings #}
+    {% if jobs_data %}
+    <div class="stats-grid grid-2">
+        {% for item in jobs_data %}
+        <div class="job-card">
+            <div class="job-card-header">
+                <div>
+                    <h3>{{ item.job.title }}</h3>
+                    <p class="text-muted">{{ item.company.company_name }}</p>
+                </div>
+                {% if item.already_applied %}
+                    <span class="badge badge-applied">Applied</span>
+                {% elif item.eligible %}
+                    <span class="badge badge-success">Eligible</span>
+                {% else %}
+                    <span class="badge badge-danger">Not Eligible</span>
+                {% endif %}
+            </div>
+            <div class="job-card-body">
+                <div class="job-meta">
+                    {% if item.job.salary_lpa %}
+                    <span>💰 {{ item.job.salary_lpa }} LPA</span>
+                    {% endif %}
+                    {% if item.job.location %}
+                    <span>📍 {{ item.job.location }}</span>
+                    {% endif %}
+                    {% if item.job.job_type %}
+                    <span>💼 {{ item.job.job_type }}</span>
+                    {% endif %}
+                    {% if item.job.min_cgpa %}
+                    <span>📊 Min CGPA: {{ item.job.min_cgpa }}</span>
+                    {% endif %}
+                </div>
+
+                {% if item.job.deadline %}
+                <p class="mt-1 text-muted">
+                    📅 Deadline: {{ item.job.deadline.strftime('%b %d, %Y') }}
+                </p>
+                {% endif %}
+
+                {% if item.job.description %}
+                <p class="mt-1">{{ item.job.description | truncate(120) }}</p>
+                {% endif %}
+
+                {% if item.job.required_skills_list %}
+                <div class="mt-1">
+                    {% for skill in item.job.required_skills_list %}
+                    <span class="job-tag">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if item.job.eligible_branches_list %}
+                <div class="mt-1">
+                    <span class="text-muted" style="font-size: 0.85em;">
+                        Branches: {{ item.job.eligible_branches_list | join(', ') }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="job-card-footer">
+                {% if item.already_applied %}
+                    <span class="btn btn-outline btn-sm" style="cursor:default;opacity:0.6;">Already Applied</span>
+                {% elif item.eligible %}
+                    <form method="POST" action="{{ url_for('student.apply', job_id=item.job.id) }}" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success btn-sm">Apply Now</button>
+                    </form>
+                {% else %}
+                    <span class="btn btn-outline btn-sm" style="cursor:default;opacity:0.5;" title="{{ item.reason }}">Not Eligible</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <p class="empty-state-text">No jobs found matching your criteria.</p>
+        <a href="{{ url_for('student.jobs') }}" class="btn btn-primary">Clear Filters</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

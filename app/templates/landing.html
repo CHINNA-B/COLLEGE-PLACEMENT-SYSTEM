@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block unauthenticated_content %}
+<div class="landing-hero">
+    <nav class="landing-nav">
+        <div class="landing-logo">
+            <div class="landing-logo-icon">🎓</div>
+            <span class="landing-logo-text">PlaceHub</span>
+        </div>
+        <div class="landing-nav-links">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline">Sign In</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Get Started</a>
+        </div>
+    </nav>
+
+    <div class="landing-content">
+        <div class="landing-text">
+            <h1>Your Gateway to Campus Placements</h1>
+            <p>
+                Streamline your campus recruitment journey. Connect students with top recruiters, 
+                manage applications, schedule interviews, and track placements — all in one place.
+            </p>
+            <div class="landing-buttons">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                    🚀 Register Now
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-lg">
+                    Sign In →
+                </a>
+            </div>
+
+            <div class="landing-features">
+                <div class="landing-feature">
+                    <div class="landing-feature-icon">👨‍🎓</div>
+                    <h3>For Students</h3>
+                    <p>Build your profile, browse jobs, apply to opportunities matching your skills, and track your placement journey.</p>
+                </div>
+                <div class="landing-feature">
+                    <div class="landing-feature-icon">🏢</div>
+                    <h3>For Companies</h3>
+                    <p>Post job openings, find top talent, review applicants, and schedule interviews seamlessly.</p>
+                </div>
+                <div class="landing-feature">
+                    <div class="landing-feature-icon">⚡</div>
+                    <h3>Smart Matching</h3>
+                    <p>AI-powered skill matching recommends the best opportunities and candidates automatically.</p>
+                </div>
+                <div class="landing-feature">
+                    <div class="landing-feature-icon">📊</div>
+                    <h3>Live Analytics</h3>
+                    <p>Real-time placement statistics, branch-wise reports, and comprehensive analytics dashboards.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

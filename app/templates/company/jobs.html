@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}My Job Postings{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>My Job Postings</h1>
+    {% if company.is_approved %}
+    <a href="{{ url_for('company.post_job') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Post New Job
+    </a>
+    {% endif %}
+</div>
+
+<div class="content-body">
+
+    {% if jobs %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Applicants</th>
+                    <th>Salary (LPA)</th>
+                    <th>Status</th>
+                    <th>Deadline</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td><strong>{{ job.title }}</strong></td>
+                    <td>{{ job.job_type }}</td>
+                    <td>
+                        <a href="{{ url_for('company.applicants', job_id=job.id) }}"
+                           class="btn btn-outline btn-sm">
+                            {{ job.applicant_count }} applicant{{ 's' if job.applicant_count != 1 }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if job.salary_lpa %}
+                            ₹{{ job.salary_lpa }} LPA
+                        {% else %}
+                            <span class="text-muted">Not specified</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if job.status == 'open' %}
+                            <span class="badge badge-success">Open</span>
+                        {% else %}
+                            <span class="badge badge-danger">Closed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if job.deadline %}
+                            {{ job.deadline.strftime('%b %d, %Y') }}
+                        {% else %}
+                            <span class="text-muted">No deadline</span>
+                        {% endif %}
+                    </td>
+                    <td class="flex gap-1">
+                        <a href="{{ url_for('company.applicants', job_id=job.id) }}"
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-users"></i> Applicants
+                        </a>
+                        <form method="POST" action="{{ url_for('company.toggle_job', job_id=job.id) }}" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% if job.status == 'open' %}
+                                <button type="submit" class="btn btn-warning btn-sm"
+                                        title="Close this job posting">
+                                    <i class="fas fa-pause"></i> Close
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-success btn-sm"
+                                        title="Re-open this job posting">
+                                    <i class="fas fa-play"></i> Open
+                                </button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fas fa-briefcase"></i></div>
+        <div class="empty-state-text">
+            You haven't posted any jobs yet.
+            {% if company.is_approved %}
+            <br><a href="{{ url_for('company.post_job') }}" class="btn btn-primary mt-1">Post Your First Job</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

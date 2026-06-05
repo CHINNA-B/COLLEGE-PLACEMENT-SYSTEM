@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Send Notification{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Bulk Notifications</h1>
+    <p class="text-muted">Send notifications to students, companies, or all users</p>
+</div>
+
+<div class="content-body">
+    <div class="grid-2">
+        <!-- Notification Form -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Compose Notification</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.notify') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="form-group">
+                        <label class="form-label" for="title">Title</label>
+                        {{ form.title(class="form-control", id="title", placeholder="Notification title...") }}
+                        {% for error in form.title.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="message">Message</label>
+                        {{ form.message(class="form-control", id="message", placeholder="Write your notification message here...", rows="5") }}
+                        {% for error in form.message.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="grid-2 gap-1">
+                        <div class="form-group">
+                            <label class="form-label" for="target">Target Audience</label>
+                            {{ form.target(class="form-select", id="target") }}
+                            {% for error in form.target.errors %}
+                                <span class="form-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="notif_type">Notification Type</label>
+                            {{ form.notif_type(class="form-select", id="notif_type") }}
+                            {% for error in form.notif_type.errors %}
+                                <span class="form-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                            📤 Send Notification
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Preview</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">This is how the notification will appear to users:</p>
+
+                <div id="preview-notification" class="alert alert-info">
+                    <strong id="preview-title">Notification Title</strong>
+                    <p id="preview-message" style="margin: 0.5rem 0 0 0;">Your notification message will appear here...</p>
+                </div>
+
+                <div class="mt-2" style="padding: 1rem; background: var(--bg-secondary, #f8f9fa); border-radius: 8px;">
+                    <h4 style="margin-bottom: 0.5rem;">Delivery Summary</h4>
+                    <div class="flex-between mb-1">
+                        <span class="text-muted">Target:</span>
+                        <span id="preview-target" class="badge badge-info">All Users</span>
+                    </div>
+                    <div class="flex-between mb-1">
+                        <span class="text-muted">Type:</span>
+                        <span id="preview-type" class="badge badge-info">Info</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Live preview
+    const titleInput   = document.getElementById('title');
+    const messageInput = document.getElementById('message');
+    const targetSelect = document.getElementById('target');
+    const typeSelect   = document.getElementById('notif_type');
+
+    const previewTitle   = document.getElementById('preview-title');
+    const previewMessage = document.getElementById('preview-message');
+    const previewTarget  = document.getElementById('preview-target');
+    const previewType    = document.getElementById('preview-type');
+    const previewAlert   = document.getElementById('preview-notification');
+
+    const typeColorMap = {
+        'info': 'info',
+        'success': 'success',
+        'warning': 'warning',
+        'danger': 'danger'
+    };
+
+    const targetLabelMap = {
+        'all': 'All Users',
+        'students': 'Students Only',
+        'companies': 'Companies Only'
+    };
+
+    function updatePreview() {
+        previewTitle.textContent   = titleInput.value || 'Notification Title';
+        previewMessage.textContent = messageInput.value || 'Your notification message will appear here...';
+
+        // Update alert class
+        const notifType = typeSelect.value;
+        previewAlert.className = 'alert alert-' + (typeColorMap[notifType] || 'info');
+
+        // Update target badge
+        previewTarget.textContent = targetLabelMap[targetSelect.value] || 'All Users';
+
+        // Update type badge
+        previewType.textContent = notifType.charAt(0).toUpperCase() + notifType.slice(1);
+        previewType.className = 'badge badge-' + (typeColorMap[notifType] || 'info');
+    }
+
+    titleInput.addEventListener('input', updatePreview);
+    messageInput.addEventListener('input', updatePreview);
+    targetSelect.addEventListener('change', updatePreview);
+    typeSelect.addEventListener('change', updatePreview);
+</script>
+{% endblock %}

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="College Placement System — Streamlining campus recruitment for students, companies, and administrators.">
+    <title>{% block title %}PlaceHub{% endblock %} | College Placement System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <div class="app-layout">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon">🎓</div>
+                <div>
+                    <div class="sidebar-brand-text">PlaceHub</div>
+                    <div class="sidebar-brand-sub">Placement Portal</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                {% if current_user.role == 'student' %}
+                <div class="sidebar-section-title">Main</div>
+                <a href="{{ url_for('student.dashboard') }}" class="sidebar-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                    <span class="sidebar-link-icon">📊</span> Dashboard
+                </a>
+                <a href="{{ url_for('student.profile') }}" class="sidebar-link {% if request.endpoint == 'student.profile' %}active{% endif %}">
+                    <span class="sidebar-link-icon">👤</span> My Profile
+                </a>
+
+                <div class="sidebar-section-title">Opportunities</div>
+                <a href="{{ url_for('student.jobs') }}" class="sidebar-link {% if request.endpoint == 'student.jobs' %}active{% endif %}">
+                    <span class="sidebar-link-icon">💼</span> Browse Jobs
+                </a>
+                <a href="{{ url_for('student.applications') }}" class="sidebar-link {% if request.endpoint == 'student.applications' %}active{% endif %}">
+                    <span class="sidebar-link-icon">📝</span> My Applications
+                </a>
+                <a href="{{ url_for('student.recommendations') }}" class="sidebar-link {% if request.endpoint == 'student.recommendations' %}active{% endif %}">
+                    <span class="sidebar-link-icon">✨</span> Recommendations
+                </a>
+
+                {% elif current_user.role == 'company' %}
+                <div class="sidebar-section-title">Main</div>
+                <a href="{{ url_for('company.dashboard') }}" class="sidebar-link {% if request.endpoint == 'company.dashboard' %}active{% endif %}">
+                    <span class="sidebar-link-icon">📊</span> Dashboard
+                </a>
+                <a href="{{ url_for('company.profile') }}" class="sidebar-link {% if request.endpoint == 'company.profile' %}active{% endif %}">
+                    <span class="sidebar-link-icon">🏢</span> Company Profile
+                </a>
+
+                <div class="sidebar-section-title">Recruitment</div>
+                <a href="{{ url_for('company.post_job') }}" class="sidebar-link {% if request.endpoint == 'company.post_job' %}active{% endif %}">
+                    <span class="sidebar-link-icon">➕</span> Post a Job
+                </a>
+                <a href="{{ url_for('company.jobs') }}" class="sidebar-link {% if request.endpoint == 'company.jobs' %}active{% endif %}">
+                    <span class="sidebar-link-icon">📋</span> My Postings
+                </a>
+
+                {% elif current_user.role == 'admin' %}
+                <div class="sidebar-section-title">Overview</div>
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                    <span class="sidebar-link-icon">📊</span> Dashboard
+                </a>
+                <a href="{{ url_for('admin.analytics') }}" class="sidebar-link {% if request.endpoint == 'admin.analytics' %}active{% endif %}">
+                    <span class="sidebar-link-icon">📈</span> Analytics
+                </a>
+
+                <div class="sidebar-section-title">Management</div>
+                <a href="{{ url_for('admin.students') }}" class="sidebar-link {% if request.endpoint == 'admin.students' %}active{% endif %}">
+                    <span class="sidebar-link-icon">🎓</span> Students
+                </a>
+                <a href="{{ url_for('admin.companies') }}" class="sidebar-link {% if request.endpoint == 'admin.companies' %}active{% endif %}">
+                    <span class="sidebar-link-icon">🏢</span> Companies
+                </a>
+
+                <div class="sidebar-section-title">Reports</div>
+                <a href="{{ url_for('admin.reports') }}" class="sidebar-link {% if request.endpoint == 'admin.reports' %}active{% endif %}">
+                    <span class="sidebar-link-icon">📄</span> Reports
+                </a>
+                <a href="{{ url_for('admin.notify') }}" class="sidebar-link {% if request.endpoint == 'admin.notify' %}active{% endif %}">
+                    <span class="sidebar-link-icon">📢</span> Send Notification
+                </a>
+                {% endif %}
+
+                <div class="sidebar-section-title">Account</div>
+                <a href="{{ url_for('notifications.list_notifications') }}" class="sidebar-link {% if request.endpoint == 'notifications.list_notifications' %}active{% endif %}">
+                    <span class="sidebar-link-icon">🔔</span> Notifications
+                    {% if unread_notifications > 0 %}
+                    <span class="badge badge-danger" style="margin-left:auto;">{{ unread_notifications }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
+                    <span class="sidebar-link-icon">🚪</span> Logout
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar">{{ current_user.username[0]|upper }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.username }}</div>
+                        <div class="sidebar-user-role">{{ current_user.role }}</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+                    <h1 class="top-bar-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                </div>
+                <div class="top-bar-right">
+                    <a href="{{ url_for('notifications.list_notifications') }}" class="notification-bell" title="Notifications">
+                        🔔
+                        {% if unread_notifications > 0 %}
+                        <span class="notification-badge" id="notifBadge">{{ unread_notifications }}</span>
+                        {% endif %}
+                    </a>
+                    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="alerts-container" style="padding: 1rem 1.5rem 0;">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible">
+                    <span>{{ message }}</span>
+                    <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- Page Content -->
+            <div class="content-area">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% else %}
+        {# Unauthenticated pages (landing, login, register) - use unauthenticated_content block #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="alerts-container" style="position:fixed;top:1rem;right:1rem;z-index:9999;width:380px;">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible">
+                <span>{{ message }}</span>
+                <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block unauthenticated_content %}{% endblock %}
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

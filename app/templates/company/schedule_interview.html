@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Interview{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Schedule Interview</h1>
+    <a href="{{ url_for('company.applicants', job_id=job.id) }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Applicants
+    </a>
+</div>
+
+<div class="content-body">
+
+    {# --- Student & Job Info --- #}
+    <div class="card mb-2">
+        <div class="card-body">
+            <div class="grid-2">
+                <div>
+                    <h4><i class="fas fa-user"></i> Student</h4>
+                    <p><strong>Name:</strong> {{ student.name or 'N/A' }}</p>
+                    <p><strong>Branch:</strong> {{ student.branch or 'N/A' }}</p>
+                    <p><strong>CGPA:</strong> {{ student.cgpa }}</p>
+                </div>
+                <div>
+                    <h4><i class="fas fa-briefcase"></i> Job</h4>
+                    <p><strong>Title:</strong> {{ job.title }}</p>
+                    <p><strong>Type:</strong> {{ job.job_type }}</p>
+                    {% if job.location %}
+                        <p><strong>Location:</strong> {{ job.location }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# --- Interview Form --- #}
+    <div class="card">
+        <div class="card-header">
+            <h3>Interview Details</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('company.schedule_interview', app_id=application.id) }}">
+                {{ form.hidden_tag() }}
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="scheduled_date">Interview Date *</label>
+                        {{ form.scheduled_date(class="form-control", id="scheduled_date", type="date") }}
+                        {% for error in form.scheduled_date.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="scheduled_time">Interview Time *</label>
+                        {{ form.scheduled_time(class="form-control", id="scheduled_time", type="time") }}
+                        {% for error in form.scheduled_time.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="mode">Interview Mode *</label>
+                    {{ form.mode(class="form-select", id="mode") }}
+                    {% for error in form.mode.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="venue_or_link">Venue / Meeting Link *</label>
+                    {{ form.venue_or_link(class="form-control", id="venue_or_link", placeholder="e.g. Room 301, Block A  or  https://meet.google.com/xyz") }}
+                    <span class="form-text">Enter the physical venue for offline interviews, or a meeting link for online interviews.</span>
+                    {% for error in form.venue_or_link.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="flex flex-end mt-2">
+                    <a href="{{ url_for('company.applicants', job_id=job.id) }}" class="btn btn-outline" style="margin-right:0.5rem;">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-calendar-check"></i> Schedule Interview
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

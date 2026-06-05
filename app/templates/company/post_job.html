@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Post a New Job{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Post a New Job</h1>
+    <a href="{{ url_for('company.jobs') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Jobs
+    </a>
+</div>
+
+<div class="content-body">
+    <div class="card">
+        <div class="card-header">
+            <h3>Job Details</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('company.post_job') }}">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    <label class="form-label" for="title">Job Title *</label>
+                    {{ form.title(class="form-control", id="title", placeholder="e.g. Software Engineer, Data Analyst") }}
+                    {% for error in form.title.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Job Description *</label>
+                    {{ form.description(class="form-control", id="description", rows="6", placeholder="Describe the role, responsibilities, and requirements...") }}
+                    {% for error in form.description.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="job_type">Job Type *</label>
+                        {{ form.job_type(class="form-select", id="job_type") }}
+                        {% for error in form.job_type.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="location">Location</label>
+                        {{ form.location(class="form-control", id="location", placeholder="e.g. Bangalore, Remote") }}
+                        {% for error in form.location.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="salary_lpa">Salary (LPA)</label>
+                        {{ form.salary_lpa(class="form-control", id="salary_lpa", placeholder="e.g. 6.0") }}
+                        {% for error in form.salary_lpa.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="min_cgpa">Minimum CGPA</label>
+                        {{ form.min_cgpa(class="form-control", id="min_cgpa", placeholder="e.g. 7.0") }}
+                        <span class="form-text">Enter 0 for no CGPA requirement.</span>
+                        {% for error in form.min_cgpa.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="required_skills">Required Skills</label>
+                    {{ form.required_skills(class="form-control", id="required_skills", rows="2", placeholder="Python, SQL, Machine Learning, Data Structures") }}
+                    <span class="form-text">Enter skills separated by commas.</span>
+                    {% for error in form.required_skills.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="eligible_branches">Eligible Branches</label>
+                    {{ form.eligible_branches(class="form-control", id="eligible_branches", rows="2", placeholder="Computer Science, Electronics, Mechanical, Electrical") }}
+                    <span class="form-text">Enter branches separated by commas. Leave empty if all branches are eligible.</span>
+                    {% for error in form.eligible_branches.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="deadline">Application Deadline</label>
+                    {{ form.deadline(class="form-control", id="deadline", type="date") }}
+                    {% for error in form.deadline.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="flex flex-end mt-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane"></i> Post Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

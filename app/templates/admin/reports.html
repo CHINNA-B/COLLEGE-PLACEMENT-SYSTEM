@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Placement Reports{% endblock %}
+
+{% block content %}
+<div class="content-header flex-between">
+    <div>
+        <h1>Placement Reports</h1>
+        <p class="text-muted">Comprehensive placement data and statistics</p>
+    </div>
+    <a href="{{ url_for('admin.download_report') }}" class="btn btn-primary">
+        📥 Download CSV Report
+    </a>
+</div>
+
+<div class="content-body">
+    <!-- Summary Stats -->
+    <div class="stats-grid grid-4">
+        <div class="stat-card primary">
+            <div class="stat-icon">🎓</div>
+            <div class="stat-number">{{ stats.get('total_students', 0) }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number">{{ stats.get('placed_students', 0) }}</div>
+            <div class="stat-label">Placed Students</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-icon">📋</div>
+            <div class="stat-number">{{ stats.get('total_applications', 0) }}</div>
+            <div class="stat-label">Total Applications</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="stat-icon">📊</div>
+            <div class="stat-number">{{ stats.get('placement_rate', 0) }}%</div>
+            <div class="stat-label">Placement Rate</div>
+        </div>
+    </div>
+
+    <!-- Branch-wise Placement Table -->
+    <div class="card mt-2">
+        <div class="card-header">
+            <h3>Branch-wise Placement Breakdown</h3>
+        </div>
+        <div class="card-body">
+            {% if branch_data %}
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Branch</th>
+                            <th>Total Students</th>
+                            <th>Placed</th>
+                            <th>Unplaced</th>
+                            <th>Placement Rate</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in branch_data %}
+                        <tr>
+                            <td><strong>{{ item.branch }}</strong></td>
+                            <td>{{ item.total }}</td>
+                            <td><span class="text-success">{{ item.placed }}</span></td>
+                            <td><span class="text-danger">{{ item.unplaced }}</span></td>
+                            <td>
+                                <span class="badge {{ 'badge-success' if item.rate >= 70 else ('badge-warning' if item.rate >= 40 else 'badge-danger') }}">
+                                    {{ item.rate }}%
+                                </span>
+                            </td>
+                            <td style="min-width: 150px;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ item.rate }}%; background: {{ 'var(--success-color, #28a745)' if item.rate >= 70 else ('var(--warning-color, #ffc107)' if item.rate >= 40 else 'var(--danger-color, #dc3545)') }};"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <p class="empty-state-text">No branch data available yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Salary Statistics -->
+    <div class="card mt-2">
+        <div class="card-header">
+            <h3>Salary Statistics</h3>
+        </div>
+        <div class="card-body">
+            <div class="stats-grid grid-3">
+                <div class="stat-card success">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-number">{{ salary_data.max }} LPA</div>
+                    <div class="stat-label">Highest Package</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-number">{{ salary_data.avg }} LPA</div>
+                    <div class="stat-label">Average Package</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon">📉</div>
+                    <div class="stat-number">{{ salary_data.min }} LPA</div>
+                    <div class="stat-label">Lowest Package</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Section -->
+    <div class="card mt-2">
+        <div class="card-body" style="text-align: center; padding: 2rem;">
+            <h3>Export Full Report</h3>
+            <p class="text-muted mb-2">Download a comprehensive CSV report with all placement data including student details, company info, and application statuses.</p>
+            <a href="{{ url_for('admin.download_report') }}" class="btn btn-primary btn-lg">
+                📥 Download Placement Report (CSV)
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

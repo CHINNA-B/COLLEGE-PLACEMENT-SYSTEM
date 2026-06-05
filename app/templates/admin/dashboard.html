@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Admin Dashboard</h1>
+    <p class="text-muted">Overview of placement activities and system status</p>
+</div>
+
+<div class="content-body">
+    <!-- Stats Grid -->
+    <div class="stats-grid grid-4">
+        <div class="stat-card primary">
+            <div class="stat-icon">🎓</div>
+            <div class="stat-number">{{ stats.get('total_students', 0) }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-icon">🏢</div>
+            <div class="stat-number">{{ stats.get('total_companies', 0) }}</div>
+            <div class="stat-label">Companies</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-icon">💼</div>
+            <div class="stat-number">{{ stats.get('open_jobs', 0) }}</div>
+            <div class="stat-label">Open Jobs</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="stat-icon">📊</div>
+            <div class="stat-number">{{ stats.get('placement_rate', 0) }}%</div>
+            <div class="stat-label">Placement Rate</div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid-2 mt-2">
+        <div class="card">
+            <div class="card-header">
+                <h3>Branch-wise Placement</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="branchChart" height="300"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3>Placement Overview</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="overviewChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Approvals & Recent Registrations -->
+    <div class="grid-2 mt-2">
+        <!-- Pending Company Approvals -->
+        <div class="card">
+            <div class="card-header flex-between">
+                <h3>Pending Approvals</h3>
+                <span class="badge badge-warning">{{ pending_count }}</span>
+            </div>
+            <div class="card-body">
+                {% if pending_companies %}
+                    {% for company in pending_companies %}
+                        <div class="flex-between mb-1" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color, #eee);">
+                            <div>
+                                <strong>{{ company.company_name }}</strong>
+                                <p class="text-muted" style="margin: 0; font-size: 0.85rem;">{{ company.industry or 'N/A' }}</p>
+                            </div>
+                            <form method="POST" action="{{ url_for('admin.approve_company', company_id=company.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <p class="empty-state-text">No pending approvals</p>
+                    </div>
+                {% endif %}
+            </div>
+            {% if pending_companies %}
+            <div class="card-footer">
+                <a href="{{ url_for('admin.companies', approved='no') }}" class="btn btn-outline btn-sm">View All</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Registrations -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Recent Registrations</h3>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'info' if user.role == 'student' else ('success' if user.role == 'company' else 'danger') }}">
+                                        {{ user.role|capitalize }}
+                                    </span>
+                                </td>
+                                <td class="text-muted">{{ user.created_at.strftime('%d %b %Y') if user.created_at else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">👤</div>
+                    <p class="empty-state-text">No recent registrations</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const branchData = {{ branch_stats|tojson }};
+    const overviewData = {{ overview_stats|tojson }};
+
+    // Branch-wise Placement Bar Chart
+    const branchLabels = Object.keys(branchData);
+    const branchTotals = branchLabels.map(b => branchData[b].total);
+    const branchPlaced = branchLabels.map(b => branchData[b].placed);
+
+    const branchCtx = document.getElementById('branchChart').getContext('2d');
+    new Chart(branchCtx, {
+        type: 'bar',
+        data: {
+            labels: branchLabels,
+            datasets: [
+                {
+                    label: 'Total Students',
+                    data: branchTotals,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Placed',
+                    data: branchPlaced,
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            },
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
+    });
+
+    // Placement Overview Pie Chart
+    const overviewCtx = document.getElementById('overviewChart').getContext('2d');
+    new Chart(overviewCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Placed', 'Unplaced'],
+            datasets: [{
+                data: [overviewData.placed, overviewData.unplaced],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(255, 99, 132, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+{% endblock %}

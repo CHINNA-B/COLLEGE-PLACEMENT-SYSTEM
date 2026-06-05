@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Applicants – {{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Applicants</h1>
+    <a href="{{ url_for('company.jobs') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Jobs
+    </a>
+</div>
+
+<div class="content-body">
+
+    {# --- Job Info Header --- #}
+    <div class="card mb-2">
+        <div class="card-body">
+            <h3>{{ job.title }}</h3>
+            <div class="job-meta mt-1">
+                <span class="job-tag"><i class="fas fa-briefcase"></i> {{ job.job_type }}</span>
+                {% if job.location %}
+                    <span class="job-tag"><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
+                {% endif %}
+                {% if job.salary_lpa %}
+                    <span class="job-tag"><i class="fas fa-rupee-sign"></i> {{ job.salary_lpa }} LPA</span>
+                {% endif %}
+                {% if job.min_cgpa %}
+                    <span class="job-tag"><i class="fas fa-graduation-cap"></i> Min CGPA: {{ job.min_cgpa }}</span>
+                {% endif %}
+            </div>
+            {% if job.eligible_branches %}
+            <div class="mt-1">
+                <strong>Eligible Branches:</strong>
+                {% for branch in job.eligible_branches_list %}
+                    <span class="badge badge-info">{{ branch }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if job.required_skills %}
+            <div class="mt-1">
+                <strong>Required Skills:</strong>
+                {% for skill in job.required_skills_list %}
+                    <span class="badge badge-info">{{ skill }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Filters --- #}
+    <div class="card mb-2">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('company.applicants', job_id=job.id) }}" class="flex gap-1 filter-group">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="status">Filter by Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="applied" {{ 'selected' if status_filter == 'applied' }}>Applied</option>
+                        <option value="shortlisted" {{ 'selected' if status_filter == 'shortlisted' }}>Shortlisted</option>
+                        <option value="interviewed" {{ 'selected' if status_filter == 'interviewed' }}>Interviewed</option>
+                        <option value="selected" {{ 'selected' if status_filter == 'selected' }}>Selected</option>
+                        <option value="rejected" {{ 'selected' if status_filter == 'rejected' }}>Rejected</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="min_cgpa">Min CGPA</label>
+                    <input type="number" name="min_cgpa" id="min_cgpa" class="form-control"
+                           step="0.1" min="0" max="10" placeholder="e.g. 7.0"
+                           value="{{ min_cgpa_filter }}">
+                </div>
+                <div class="form-group" style="margin-bottom:0; align-self:flex-end;">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <a href="{{ url_for('company.applicants', job_id=job.id) }}" class="btn btn-outline btn-sm">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# --- Applicants Table --- #}
+    {% if applications %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Branch</th>
+                    <th>CGPA</th>
+                    <th>Skills</th>
+                    <th>Status</th>
+                    <th>Resume</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td><strong>{{ app.student.name or 'N/A' }}</strong></td>
+                    <td>{{ app.student.branch or 'N/A' }}</td>
+                    <td>{{ app.student.cgpa }}</td>
+                    <td>
+                        {% for skill in app.student.skills_list[:5] %}
+                            <span class="badge badge-info">{{ skill }}</span>
+                        {% endfor %}
+                        {% if app.student.skills_list | length > 5 %}
+                            <span class="text-muted">+{{ app.student.skills_list | length - 5 }} more</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ app.status }}">{{ app.status | capitalize }}</span>
+                    </td>
+                    <td>
+                        {% if app.student.resume_filename %}
+                            <a href="{{ url_for('static', filename='uploads/' + app.student.resume_filename) }}"
+                               class="btn btn-outline btn-sm" target="_blank" title="Download Resume">
+                                <i class="fas fa-download"></i> Resume
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No resume</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="flex gap-1">
+                            {# Action buttons based on current status #}
+                            {% if app.status == 'applied' %}
+                                <form method="POST" action="{{ url_for('company.update_status', app_id=app.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="new_status" value="shortlisted">
+                                    <button type="submit" class="btn btn-warning btn-sm" title="Shortlist">
+                                        <i class="fas fa-star"></i> Shortlist
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('company.update_status', app_id=app.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="new_status" value="rejected">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Reject">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                            {% elif app.status == 'shortlisted' %}
+                                <a href="{{ url_for('company.schedule_interview', app_id=app.id) }}"
+                                   class="btn btn-primary btn-sm" title="Schedule Interview">
+                                    <i class="fas fa-calendar"></i> Interview
+                                </a>
+                                <form method="POST" action="{{ url_for('company.update_status', app_id=app.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="new_status" value="rejected">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Reject">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                            {% elif app.status == 'interviewed' %}
+                                <form method="POST" action="{{ url_for('company.update_status', app_id=app.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="new_status" value="selected">
+                                    <button type="submit" class="btn btn-success btn-sm" title="Select">
+                                        <i class="fas fa-check"></i> Select
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('company.update_status', app_id=app.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="new_status" value="rejected">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Reject">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('company.schedule_interview', app_id=app.id) }}"
+                                   class="btn btn-outline btn-sm" title="Reschedule Interview">
+                                    <i class="fas fa-calendar-alt"></i> Reschedule
+                                </a>
+                            {% else %}
+                                {# selected or rejected – show status only #}
+                                <span class="text-muted">No actions available</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fas fa-user-slash"></i></div>
+        <div class="empty-state-text">
+            No applicants found{% if status_filter or min_cgpa_filter %} matching the current filters{% endif %}.
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

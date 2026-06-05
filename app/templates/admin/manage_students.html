@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Students{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Manage Students</h1>
+    <p class="text-muted">View and manage all registered students</p>
+</div>
+
+<div class="content-body">
+    <!-- Search and Filters -->
+    <div class="card mb-2">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('admin.students') }}">
+                <div class="grid-4 gap-1">
+                    <div class="form-group">
+                        <label class="form-label" for="search">Search</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search }}" placeholder="Name, branch, or email...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="branch">Branch</label>
+                        <select class="form-select" id="branch" name="branch">
+                            <option value="">All Branches</option>
+                            {% for b in branches %}
+                                <option value="{{ b }}" {{ 'selected' if branch_filter == b }}>{{ b }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="verified">Verified</label>
+                        <select class="form-select" id="verified" name="verified">
+                            <option value="">All</option>
+                            <option value="yes" {{ 'selected' if verified_filter == 'yes' }}>Verified</option>
+                            <option value="no" {{ 'selected' if verified_filter == 'no' }}>Not Verified</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="placed">Placed</label>
+                        <select class="form-select" id="placed" name="placed">
+                            <option value="">All</option>
+                            <option value="yes" {{ 'selected' if placed_filter == 'yes' }}>Placed</option>
+                            <option value="no" {{ 'selected' if placed_filter == 'no' }}>Not Placed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex-end mt-1 gap-1">
+                    <a href="{{ url_for('admin.students') }}" class="btn btn-outline btn-sm">Clear</a>
+                    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card">
+        <div class="card-header flex-between">
+            <h3>Students ({{ pagination.total }})</h3>
+        </div>
+        <div class="card-body">
+            {% if students %}
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Branch</th>
+                            <th>CGPA</th>
+                            <th>Skills</th>
+                            <th>Verified</th>
+                            <th>Placed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td><strong>{{ student.name or 'N/A' }}</strong></td>
+                            <td class="text-muted">{{ student.user.email if student.user else 'N/A' }}</td>
+                            <td>{{ student.branch or 'N/A' }}</td>
+                            <td>{{ student.cgpa or 'N/A' }}</td>
+                            <td>
+                                {% if student.skills %}
+                                    {% for skill in student.skills_list[:3] %}
+                                        <span class="job-tag">{{ skill }}</span>
+                                    {% endfor %}
+                                    {% if student.skills_list|length > 3 %}
+                                        <span class="text-muted">+{{ student.skills_list|length - 3 }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if student.profile_verified %}
+                                    <span class="badge badge-success">Verified</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if student.placement_status %}
+                                    <span class="badge badge-selected">Placed</span>
+                                {% else %}
+                                    <span class="badge badge-info">Not Placed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <form method="POST" action="{{ url_for('admin.verify_student', student_id=student.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm {{ 'btn-warning' if student.profile_verified else 'btn-success' }}" 
+                                                title="{{ 'Unverify' if student.profile_verified else 'Verify' }}">
+                                            {{ 'Unverify' if student.profile_verified else 'Verify' }}
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('admin.delete_user', user_id=student.user_id) }}"
+                                          onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🎓</div>
+                <p class="empty-state-text">No students found matching your criteria.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="card-footer flex-between">
+            <span class="text-muted">
+                Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} 
+                to {{ [pagination.page * pagination.per_page, pagination.total]|min }} 
+                of {{ pagination.total }} students
+            </span>
+            <div class="flex gap-1">
+                {% if pagination.has_prev %}
+                    <a href="{{ url_for('admin.students', page=pagination.prev_num, search=search, branch=branch_filter, verified=verified_filter, placed=placed_filter) }}" 
+                       class="btn btn-outline btn-sm">← Previous</a>
+                {% endif %}
+
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        <a href="{{ url_for('admin.students', page=page_num, search=search, branch=branch_filter, verified=verified_filter, placed=placed_filter) }}" 
+                           class="btn btn-sm {{ 'btn-primary' if page_num == pagination.page else 'btn-outline' }}">
+                            {{ page_num }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">…</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                    <a href="{{ url_for('admin.students', page=pagination.next_num, search=search, branch=branch_filter, verified=verified_filter, placed=placed_filter) }}" 
+                       class="btn btn-outline btn-sm">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>My Applications</h1>
+    <p class="text-muted">Track the status of all your job applications</p>
+</div>
+
+<div class="content-body">
+    {% if applications %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Applied Date</th>
+                            <th>Status</th>
+                            <th>Interview</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in applications %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.job.title }}</strong>
+                                {% if item.job.job_type %}
+                                <br><span class="text-muted" style="font-size: 0.85em;">{{ item.job.job_type }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.company.company_name }}</td>
+                            <td>{{ item.application.applied_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <span class="badge badge-{{ item.application.status_color }}">
+                                    {{ item.application.status | capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if item.interview %}
+                                    <div>
+                                        <span class="badge badge-info">{{ item.interview.mode | capitalize }}</span>
+                                        <br>
+                                        <span style="font-size: 0.85em;">
+                                            {{ item.interview.scheduled_at.strftime('%b %d, %Y %I:%M %p') }}
+                                        </span>
+                                        <br>
+                                        <span class="badge badge-{{ 'warning' if item.interview.status == 'scheduled' else ('success' if item.interview.status == 'completed' else 'danger') }}">
+                                            {{ item.interview.status | capitalize }}
+                                        </span>
+                                        {% if item.interview.venue_or_link %}
+                                        <br>
+                                        {% if item.interview.mode == 'online' %}
+                                            <a href="{{ item.interview.venue_or_link }}" target="_blank" class="btn btn-sm btn-primary mt-1">Join</a>
+                                        {% else %}
+                                            <span class="text-muted" style="font-size: 0.85em;">📍 {{ item.interview.venue_or_link }}</span>
+                                        {% endif %}
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.job.salary_lpa %}
+                                <span class="text-muted" style="font-size: 0.85em;">💰 {{ item.job.salary_lpa }} LPA</span>
+                                {% endif %}
+                                {% if item.job.location %}
+                                <br><span class="text-muted" style="font-size: 0.85em;">📍 {{ item.job.location }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Summary #}
+    <div class="card mt-2">
+        <div class="card-body">
+            <div class="stats-grid grid-4">
+                <div class="stat-card primary">
+                    <div class="stat-number">{{ applications | length }}</div>
+                    <div class="stat-label">Total Applications</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number">{{ applications | selectattr('application.status', 'equalto', 'shortlisted') | list | length }}</div>
+                    <div class="stat-label">Shortlisted</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-number">{{ applications | selectattr('application.status', 'equalto', 'selected') | list | length }}</div>
+                    <div class="stat-label">Selected</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-number">{{ applications | selectattr('application.status', 'equalto', 'rejected') | list | length }}</div>
+                    <div class="stat-label">Rejected</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p class="empty-state-text">You haven't applied to any jobs yet.</p>
+        <a href="{{ url_for('student.jobs') }}" class="btn btn-primary">Browse Jobs</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

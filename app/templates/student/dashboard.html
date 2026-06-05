@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Welcome, {{ student.name if student and student.name else current_user.username }}!</h1>
+    <p class="text-muted">Your placement dashboard overview</p>
+</div>
+
+<div class="content-body">
+
+    {# Profile completion alert #}
+    {% if not profile_completed %}
+    <div class="alert alert-warning alert-dismissible">
+        <strong>⚠️ Profile Incomplete!</strong> Please 
+        <a href="{{ url_for('student.profile') }}" style="text-decoration:underline;font-weight:600;">complete your profile</a> 
+        to start applying for jobs.
+    </div>
+    {% endif %}
+
+    {# Stats Grid #}
+    <div class="stats-grid grid-4">
+        <div class="stat-card primary">
+            <div class="stat-icon">📋</div>
+            <div class="stat-number">{{ total_applications }}</div>
+            <div class="stat-label">Total Applications</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-icon">📝</div>
+            <div class="stat-number">{{ shortlisted }}</div>
+            <div class="stat-label">Shortlisted</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-icon">🎉</div>
+            <div class="stat-number">{{ selected }}</div>
+            <div class="stat-label">Selected</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="stat-icon">📅</div>
+            <div class="stat-number">{{ upcoming_interviews | length }}</div>
+            <div class="stat-label">Upcoming Interviews</div>
+        </div>
+    </div>
+
+    {# Upcoming Interviews #}
+    <div class="card mt-2">
+        <div class="card-header flex flex-between">
+            <h2>Upcoming Interviews</h2>
+            <a href="{{ url_for('student.applications') }}" class="btn btn-outline btn-sm">View All Applications</a>
+        </div>
+        <div class="card-body">
+            {% if upcoming_interviews %}
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date &amp; Time</th>
+                            <th>Company</th>
+                            <th>Job Title</th>
+                            <th>Mode</th>
+                            <th>Venue / Link</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for interview, application, job, company in upcoming_interviews %}
+                        <tr>
+                            <td>{{ interview.scheduled_at.strftime('%b %d, %Y %I:%M %p') }}</td>
+                            <td>{{ company.company_name }}</td>
+                            <td>{{ job.title }}</td>
+                            <td>
+                                <span class="badge badge-info">{{ interview.mode | capitalize }}</span>
+                            </td>
+                            <td>
+                                {% if interview.mode == 'online' and interview.venue_or_link %}
+                                    <a href="{{ interview.venue_or_link }}" target="_blank" class="btn btn-sm btn-primary">Join Link</a>
+                                {% elif interview.venue_or_link %}
+                                    {{ interview.venue_or_link }}
+                                {% else %}
+                                    <span class="text-muted">TBA</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge badge-warning">{{ interview.status | capitalize }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📅</div>
+                <p class="empty-state-text">No upcoming interviews scheduled.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Recommended Jobs #}
+    <div class="card mt-2">
+        <div class="card-header flex flex-between">
+            <h2>Recommended Jobs</h2>
+            <a href="{{ url_for('student.recommendations') }}" class="btn btn-outline btn-sm">View All Recommendations</a>
+        </div>
+        <div class="card-body">
+            {% if recommended_jobs %}
+            <div class="stats-grid grid-3">
+                {% for job, score in recommended_jobs %}
+                <div class="job-card">
+                    <div class="job-card-header">
+                        <h3>{{ job.title }}</h3>
+                        <span class="badge badge-success">{{ score }}% Match</span>
+                    </div>
+                    <div class="job-card-body">
+                        {% set company = job.company %}
+                        <p class="text-muted">{{ company.company_name if company else 'N/A' }}</p>
+                        <div class="job-meta">
+                            {% if job.salary_lpa %}
+                            <span>💰 {{ job.salary_lpa }} LPA</span>
+                            {% endif %}
+                            {% if job.location %}
+                            <span>📍 {{ job.location }}</span>
+                            {% endif %}
+                        </div>
+                        {% if job.required_skills_list %}
+                        <div class="mt-1">
+                            {% for skill in job.required_skills_list[:4] %}
+                            <span class="job-tag">{{ skill }}</span>
+                            {% endfor %}
+                            {% if job.required_skills_list | length > 4 %}
+                            <span class="job-tag">+{{ job.required_skills_list | length - 4 }} more</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="job-card-footer">
+                        <form method="POST" action="{{ url_for('student.apply', job_id=job.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-success btn-sm">Apply Now</button>
+                        </form>
+                        <a href="{{ url_for('student.jobs') }}" class="btn btn-outline btn-sm">View Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">💼</div>
+                <p class="empty-state-text">No job recommendations available. Complete your profile to get personalized suggestions.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

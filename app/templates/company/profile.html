@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Company Profile{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Company Profile</h1>
+</div>
+
+<div class="content-body">
+
+    {# --- Approval Status --- #}
+    <div class="card mb-2">
+        <div class="card-body flex flex-between">
+            <div>
+                <strong>Approval Status:</strong>
+                {% if company.is_approved %}
+                    <span class="badge badge-success">Approved</span>
+                {% else %}
+                    <span class="badge badge-warning">Pending Approval</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# --- Profile Form --- #}
+    <div class="card">
+        <div class="card-header">
+            <h3>Update Profile</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('company.profile') }}">
+                {{ form.hidden_tag() }}
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="company_name">Company Name *</label>
+                        {{ form.company_name(class="form-control", id="company_name", placeholder="Enter company name") }}
+                        {% for error in form.company_name.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="industry">Industry</label>
+                        {{ form.industry(class="form-select", id="industry") }}
+                        {% for error in form.industry.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="contact_email">Contact Email *</label>
+                        {{ form.contact_email(class="form-control", id="contact_email", placeholder="hr@company.com") }}
+                        {% for error in form.contact_email.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="contact_phone">Contact Phone</label>
+                        {{ form.contact_phone(class="form-control", id="contact_phone", placeholder="+91 9876543210") }}
+                        {% for error in form.contact_phone.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="website">Website</label>
+                    {{ form.website(class="form-control", id="website", placeholder="https://www.company.com") }}
+                    {% for error in form.website.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Company Description</label>
+                    {{ form.description(class="form-control", id="description", rows="5", placeholder="Tell students about your company, culture, and what you do...") }}
+                    {% for error in form.description.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="flex flex-end mt-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

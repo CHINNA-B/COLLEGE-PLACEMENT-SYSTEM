@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Company Dashboard{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1>Dashboard</h1>
+    <a href="{{ url_for('company.post_job') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Post New Job
+    </a>
+</div>
+
+<div class="content-body">
+
+    {# --- Pending Approval Alert --- #}
+    {% if not company.is_approved %}
+    <div class="alert alert-warning">
+        <strong><i class="fas fa-clock"></i> Pending Approval</strong>
+        <p>Your company profile is awaiting admin approval. You will be able to post jobs once approved.</p>
+    </div>
+    {% endif %}
+
+    {# --- Stats Grid --- #}
+    <div class="stats-grid grid-3">
+        <div class="stat-card primary">
+            <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
+            <div class="stat-number">{{ total_jobs }}</div>
+            <div class="stat-label">Jobs Posted</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-number">{{ total_applicants }}</div>
+            <div class="stat-label">Total Applicants</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-number">{{ total_selected }}</div>
+            <div class="stat-label">Students Selected</div>
+        </div>
+    </div>
+
+    {# --- Recent Applications --- #}
+    <div class="card mt-2">
+        <div class="card-header flex flex-between">
+            <h3>Recent Applications</h3>
+            {% if company.is_approved %}
+            <a href="{{ url_for('company.jobs') }}" class="btn btn-outline btn-sm">View All Jobs</a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if recent_applications %}
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Job Title</th>
+                            <th>Applied On</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in recent_applications %}
+                        <tr>
+                            <td>{{ app.student.name or 'N/A' }}</td>
+                            <td>{{ app.job.title }}</td>
+                            <td>{{ app.applied_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <span class="badge badge-{{ app.status }}">{{ app.status | capitalize }}</span>
+                            </td>
+                            <td class="flex gap-1">
+                                <a href="{{ url_for('company.applicants', job_id=app.job_id) }}"
+                                   class="btn btn-outline btn-sm">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                <div class="empty-state-text">No applications received yet.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
