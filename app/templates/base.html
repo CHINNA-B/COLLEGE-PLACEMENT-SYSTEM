@@ -7,6 +7,8 @@
     <title>{% block title %}PlaceHub{% endblock %} | College Placement System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
+    <!-- Vercel Web Analytics -->
+    <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 </head>
 <body>
     {% if current_user.is_authenticated %}
