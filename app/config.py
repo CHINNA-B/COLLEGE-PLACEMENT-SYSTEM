@@ -11,8 +11,7 @@ project_root = os.path.dirname(basedir)
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(instance_dir, 'placement.db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(project_root, 'uploads')
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB max upload
