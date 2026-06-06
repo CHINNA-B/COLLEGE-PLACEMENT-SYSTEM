@@ -5,8 +5,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 project_root = os.path.dirname(basedir)
 
 # Ensure instance directory exists
-instance_dir = os.path.join(project_root, 'instance')
-os.makedirs(instance_dir, exist_ok=True)
+#instance_dir = os.path.join(project_root, 'instance')
+#os.makedirs(instance_dir, exist_ok=True)
 
 
 class Config:
