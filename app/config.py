@@ -13,6 +13,6 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    UPLOAD_FOLDER = os.path.join(project_root, 'uploads')
+    UPLOAD_FOLDER = "/tmp/uploads"
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB max upload
     ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
